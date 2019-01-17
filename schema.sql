@@ -16,3 +16,14 @@ CREATE TABLE weathers (
   location_id INTEGER NOT NULL,
   FOREIGN KEY (location_id) REFERENCES locations (id)
   );
+
+CREATE TABLE foods (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255),
+  url VARCHAR(2083),
+  rating NUMERIC(2, 1),
+  price VARCHAR(255),
+  image_url VARCHAR(2083),
+  location_id INTEGER NOT NULL,
+  FOREIGN KEY (location_id) REFERENCES locations (id)
+  );

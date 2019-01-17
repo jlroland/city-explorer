@@ -17,8 +17,8 @@ const app = express();
 app.use(cors());
 
 app.get('/location', getLocation);
-// app.get('/weather', searchWeather);
-// app.get('/yelp', searchFood);
+app.get('/weather', getWeather);
+app.get('/yelp', getFood);
 // app.get('/movies', searchMovies);
 
 app.listen(PORT, () => console.log(`Listening on ${PORT}`));
@@ -82,7 +82,6 @@ Location.fetchLocation = (query) => {
             location.id = results.rows[0].id;
             return location;
           })
-        // return location;
       }
     })
     .catch(error => handleError(error));
@@ -97,38 +96,137 @@ Location.prototype.save = function() {
   return client.query(SQL, values);
 };
 
-function searchWeather(req, res) {
-  const url = `https://api.darksky.net/forecast/${process.env.WEATHER_API_KEY}/${req.query.data.latitude},${req.query.data.longitude}`;
+function getWeather(request, response) {
+  const handler = {
+    location: request.query.data,
+    cacheHit: function(result) {
+      response.send(result.rows);
+    },
+    cacheMiss: function() {
+      Weather.fetch(request.query.data)
+        .then(results => response.send(results))
+        .catch(console.error);
+    },
+  };
 
-  return superagent.get(url)
-    .then((weatherResponse) => {
-      const weatherSummaries = weatherResponse.body.daily.data.map((day) => {
-        return new Weather(day);
-      });
-      res.send(weatherSummaries);
-    })
-    .catch((err) => handleError(err, res));
+  Weather.lookup(handler);
 }
 
 function Weather(day) {
   this.forecast = day.summary;
-  this.time = new Date(day.time * 1000)
-    .toLocaleDateString('en-US', {weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'});
+  this.time = new Date(day.time * 1000).toString().slice(0, 15);
 }
 
-function searchFood(req, res) {
-  const url = `https://api.yelp.com/v3/businesses/search?term=restaurants&latitude=${req.query.data.latitude}&longitude=${req.query.data.longitude}`;
+Weather.lookup = function(handler) {
+  const SQL = `SELECT * FROM weathers WHERE location_id=$1;`;
+  client.query(SQL, [handler.location.id])
+    .then(result => {
+      if ( result.rowCount > 0 ) {
+        console.log('Got data from SQL');
+        handler.cacheHit(result);
+      }
+      else {
+        console.log('Got data from API');
+        handler.cacheMiss();
+      }
+    })
+    .catch(error => handleError(error));
+};
+
+Weather.fetch = function(location) {
+  const url = `https://api.darksky.net/forecast/${process.env.WEATHER_API_KEY}/${location.latitude},${location.longitude}`;
+
+  return superagent.get(url)
+    .then((result => {
+      const weatherSummaries = result.body.daily.data.map((day) => {
+        const summary = new Weather(day);
+        summary.save(location.id);
+        return summary;
+      });
+      return weatherSummaries;
+    }))
+    .catch((error) => handleError(error));
+};
+
+Weather.prototype.save = function(id) {
+  const SQL = `INSERT INTO weathers 
+    (forecast, time, location_id) 
+    VALUES ($1, $2, $3);`;
+  const values = Object.values(this);
+  values.push(id);
+  client.query(SQL, values);
+};
+
+Food.fetch = function(location) {
+  // const url = `https://api.yelp.com/v3/businesses/search?term=restaurants&latitude=${location.latitude}&longitude=${location.longitude}`;
 
   return superagent.get(url)
     .set('Authorization', `Bearer ${process.env.YELP_API_KEY}`)
     .then((foodResponse) => {
       const foodReviews = foodResponse.body.businesses.map((restaurant) => {
-        return new Food(restaurant);
+        const foodSummary = new Food(restaurant);
+        foodSummary.save(location.id);
+        return foodSummary;
       });
-      res.send(foodReviews);
+      return foodReviews;
     })
-    .catch((err) => handleError(err, res));
+    .catch((error) => handleError(error));
 }
+
+Food.prototype.save = function(id) {
+  const SQL = `INSERT INTO foods 
+    (name, url, rating, price, image_url, location_id) 
+    VALUES ($1, $2, $3, $4, $5, $6);`;
+  const values = Object.values(this);
+  values.push(id);
+  client.query(SQL, values);
+};
+
+function getFood(request, response) {
+  const handler = {
+    location: request.query.data,
+    cacheHit: function(result) {
+      response.send(result.rows);
+    },
+    cacheMiss: function() {
+      Food.fetch(request.query.data)
+        .then(results => response.send(results))
+        .catch(console.error);
+    },
+  };
+
+  Food.lookup(handler);
+}
+
+Food.lookup = function(handler) {
+  const SQL = `SELECT * FROM foods WHERE location_id=$1;`;
+  client.query(SQL, [handler.location.id])
+    .then(result => {
+      if ( result.rowCount > 0 ) {
+        console.log('Got data from SQL');
+        handler.cacheHit(result);
+      }
+      else {
+        console.log('Got data from API');
+        handler.cacheMiss();
+      }
+    })
+    .catch(error => handleError(error));
+};
+
+// function searchFood(req, res) {
+//   const url = `https://api.yelp.com/v3/businesses/search?term=restaurants&latitude=${req.query.data.latitude}&longitude=${req.query.data.longitude}`;
+
+//   return superagent.get(url)
+//     .set('Authorization', `Bearer ${process.env.YELP_API_KEY}`)
+//     .then((foodResponse) => {
+//       const foodReviews = foodResponse.body.businesses.map((restaurant) => {
+//         return new Food(restaurant);
+//       });
+//       res.send(foodReviews);
+//     })
+//     .catch((err) => handleError(err, res));
+// }
 
 function Food(restaurant) {
   this.name = restaurant.name;
