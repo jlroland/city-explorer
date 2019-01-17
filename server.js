@@ -17,9 +17,9 @@ const app = express();
 app.use(cors());
 
 app.get('/location', getLocation);
-app.get('/weather', searchWeather);
-app.get('/yelp', searchFood);
-app.get('/movies', searchMovies);
+// app.get('/weather', searchWeather);
+// app.get('/yelp', searchFood);
+// app.get('/movies', searchMovies);
 
 app.listen(PORT, () => console.log(`Listening on ${PORT}`));
 
@@ -39,35 +39,16 @@ function getLocation(request, response) {
     },
   };
 
-  Location.lookupLocation(request.query.data)
-    .then(data => response.send(data));
+  Location.lookupLocation(locationHandler);
 }
 
-// const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${req.query.data}&key=${process.env.GEOCODE_API_KEY}`;
-// return superagent.get(url)
-//   .then((apiResponse) => {
-//     let location = new Location(req.query.data, apiResponse);
-//     res.send(location);
-//   })
-//   .catch((err) => handleError(err, res));
-
-
-
-// function searchToLatLong(req, res) {
-//   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${req.query.data}&key=${process.env.GEOCODE_API_KEY}`;
-//   return superagent.get(url)
-//     .then((apiResponse) => {
-//       let location = new Location(req.query.data, apiResponse);
-//       res.send(location);
-//     })
-//     .catch((err) => handleError(err, res));
-// }
-
 function Location(query, data) {
+  console.log('Inside Location constructor.');
   this.search_query = query;
   this.formatted_query = data.formatted_address;
-  this.latitude = data.body.location.lat;
-  this.longitude = data.body.location.lng;
+  this.latitude = data.geometry.location.lat;
+  this.longitude = data.geometry.location.lng;
+  console.log('End constuctor: ', this.latitude, this.longitude);
 }
 
 Location.lookupLocation = (handler) => {
@@ -86,14 +67,16 @@ Location.lookupLocation = (handler) => {
 }
 
 Location.fetchLocation = (query) => {
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${req.query.data}&key=${process.env.GEOCODE_API_KEY}`;
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${query}&key=${process.env.GEOCODE_API_KEY}`;
+
   return superagent.get(url)
     .then(apiResponse => {
+      console.log('Looking at apiResponse.body.results.length:', apiResponse.body.results.length);
       if ( !apiResponse.body.results.length ) {
         throw 'No Data';
-      } 
+      }
       else {
-        let location = new Location(query, apiResponse);
+        let location = new Location(query, apiResponse.body.results[0]);
         return location.save()
           .then( results => {
             location.id = results.rows[0].id;
@@ -104,6 +87,15 @@ Location.fetchLocation = (query) => {
     })
     .catch(error => handleError(error));
 }
+
+Location.prototype.save = function() {
+  let SQL = `INSERT INTO locations 
+    (search_query, formatted_query, latitude, longitude) 
+    VALUES ($1, $2, $3, $4) RETURNING id`;
+
+  let values = Object.values(this);
+  return client.query(SQL, values);
+};
 
 function searchWeather(req, res) {
   const url = `https://api.darksky.net/forecast/${process.env.WEATHER_API_KEY}/${req.query.data.latitude},${req.query.data.longitude}`;
