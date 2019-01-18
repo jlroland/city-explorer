@@ -1,4 +1,6 @@
 DROP TABLE IF EXISTS weathers;
+DROP TABLE IF EXISTS foods;
+DROP TABLE IF EXISTS movies;
 DROP TABLE IF EXISTS locations;
 
 CREATE TABLE locations (
@@ -24,6 +26,19 @@ CREATE TABLE foods (
   rating NUMERIC(2, 1),
   price VARCHAR(255),
   image_url VARCHAR(2083),
+  location_id INTEGER NOT NULL,
+  FOREIGN KEY (location_id) REFERENCES locations (id)
+  );
+
+CREATE TABLE movies (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255),
+  released_on VARCHAR(255),
+  total_votes INTEGER NOT NULL,
+  average_votes NUMERIC(2, 1),
+  popularity NUMERIC(5, 1),
+  image_url VARCHAR(2083),
+  overview VARCHAR(2083),
   location_id INTEGER NOT NULL,
   FOREIGN KEY (location_id) REFERENCES locations (id)
   );
