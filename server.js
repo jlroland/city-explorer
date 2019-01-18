@@ -25,6 +25,15 @@ app.get('/trails', getTrails)
 
 app.listen(PORT, () => console.log(`Listening on ${PORT}`));
 
+const timeouts = {
+  weather: 1000 * 15
+}
+
+function deleteByLocationId(table, cityId) {
+  const SQL = `DELETE from ${table} WHERE location_id=${cityId}`;
+  return client.query(SQL);
+}
+
 // Error handler
 function handleError(err, res) {
   console.error(err);
@@ -96,8 +105,19 @@ function getWeather(request, response) {
   const handler = {
     location: request.query.data,
     cacheHit: function(result) {
-      response.send(result.rows);
+      let ageOfResults = (Date.now() - result.rows[0].created_at);
+      console.log('result.rows', result.rows[0].created_at);
+      console.log('age', ageOfResults);
+      console.log('timeout', timeouts.weather);
+
+      if(ageOfResults > timeouts.weather) {
+        deleteByLocationId('weathers', this.location.id);
+        this.cacheMiss();
+      } else {
+        response.send(result.rows);
+      }
     },
+
     cacheMiss: function() {
       Weather.fetch(request.query.data)
         .then(results => response.send(results))
@@ -342,21 +362,6 @@ Movie.lookup = function(handler) {
     .catch(error => handleError(error));
 };
 
-function Weather(day) {
-  this.forecast = day.summary;
-  this.time = new Date(day.time * 1000).toString().slice(0, 15);
-}
-
-Weather.prototype.save = function(id) {
-  const SQL = `INSERT INTO weathers 
-    (forecast, time, location_id) 
-    VALUES ($1, $2, $3);`;
-  const values = Object.values(this);
-  values.push(id);
-  client.query(SQL, values);
-};
-
-
 function Trail(hike) {
   this.trail_url = hike.url;
   this.name = hike.name;
@@ -409,6 +414,21 @@ Trail.lookup = function(handler) {
       }
     })
     .catch(error => handleError(error));
+};
+
+function Weather(day) {
+  this.forecast = day.summary;
+  this.time = new Date(day.time * 1000).toString().slice(0, 15);
+  this.created_at = Date.now();
+}
+
+Weather.prototype.save = function(id) {
+  const SQL = `INSERT INTO weathers 
+    (forecast, time, created_at, location_id) 
+    VALUES ($1, $2, $3, $4);`;
+  const values = Object.values(this);
+  values.push(id);
+  client.query(SQL, values);
 };
 
 Weather.fetch = function(location) {
