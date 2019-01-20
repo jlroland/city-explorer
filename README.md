@@ -26,6 +26,7 @@ This app depends on express, cors, superagent, and dotenv. It reads incoming que
 01-17-2019 1:30pm - Refactored server application for the yelp constructor. 
 01-17-2019 4:30pm - 5:45pm - Refactored server application for the movie constructor.
 01-18-2019 9:30am - Updated server application to deploy heroku.
+01-20-2019 3:45pm - Refactored server application for cache invalidation of each model.
 
 <!-- Use this area to document the iterative changes made to your application as each feature is successfully implemented. Use time stamps. Here's an examples:
 
@@ -34,6 +35,7 @@ This app depends on express, cors, superagent, and dotenv. It reads incoming que
 ## Credits and Collaborations
 Code that was refactored today was based on a collaboration with Chris B and Milo A yesterday.
 Code was refactored yesterday from collaboration between Paul Williamsen, Jessica Roland and Jasmin Arensdorf.
+Code was refactored by Jasmin Arensdorf
 <!-- Give credit (and a link) to other people or resources that helped you build this application. -->
 
 > Number and name of feature: Yelp API
@@ -71,4 +73,10 @@ Number and name of feature: Deployment of City Explorer
 > Start time: 9:00
 > Finish time: 9:20
 > Actual time needed to complete: 20 min
+
+Number and name of feature: Cache Invalidation
+> Estimate of time needed to complete: 3:00
+> Start time: 12:00
+> Finish time: 3:45
+> Actual time needed to complete: 3:45
 
