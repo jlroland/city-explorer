@@ -96,7 +96,7 @@ function getMeetups(request, response) {
     cacheMiss: () => {
       Meetup.fetch(request.query.data)
         .then(data => response.send(data))
-        // .catch(console.error);
+        .catch(console.error);
     },
   };
 
@@ -126,7 +126,7 @@ function getTrails(request, response) {
     cacheMiss: () => {
       Trail.fetch(request.query.data)
         .then(data => response.send(data))
-        // .catch(console.error);
+        .catch(console.error);
     },
   };
 
@@ -184,7 +184,7 @@ function getFood(request, response) {
     cacheMiss: function() {
       Food.fetch(request.query.data)
         .then(results => response.send(results))
-        // .catch(console.error);
+        .catch(console.error);
     },
   };
 
@@ -213,7 +213,7 @@ function getMovies(request, response) {
     cacheMiss: function() {
       Movie.fetch(request.query.data)
         .then(results => response.send(results))
-        // .catch(console.error);
+        .catch(console.error);
     },
   };
 
