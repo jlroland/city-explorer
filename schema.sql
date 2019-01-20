@@ -29,6 +29,7 @@ CREATE TABLE foods (
   rating NUMERIC(2, 1),
   price VARCHAR(255),
   image_url VARCHAR(2083),
+  created_at VARCHAR(255),
   location_id INTEGER NOT NULL,
   FOREIGN KEY (location_id) REFERENCES locations (id)
   );
@@ -42,6 +43,7 @@ CREATE TABLE movies (
   popularity NUMERIC(5, 1),
   image_url VARCHAR(2083),
   overview VARCHAR(2083),
+  created_at VARCHAR(255),
   location_id INTEGER NOT NULL,
   FOREIGN KEY (location_id) REFERENCES locations (id)
   );
@@ -52,6 +54,7 @@ CREATE TABLE meetups (
   name VARCHAR(255),
   creation_date VARCHAR(255),
   host VARCHAR(255),
+  created_at VARCHAR(255),
   location_id INTEGER NOT NULL,
   FOREIGN KEY (location_id) REFERENCES locations (id)
 );
@@ -68,6 +71,7 @@ CREATE TABLE trails (
   stars NUMERIC(2, 1),
   star_votes INTEGER NOT NULL,
   summary VARCHAR(255),
+  created_at VARCHAR(255),
   location_id INTEGER NOT NULL,
   FOREIGN KEY (location_id) REFERENCES locations (id)
 );
