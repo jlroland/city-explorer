@@ -360,7 +360,7 @@ Meetup.fetch = (location) => {
 
 Meetup.lookup = (handler) => {
   const SQL = `SELECT * FROM meetups WHERE location_id=$1;`;
-  client.query(SQL, [handler.location.id])
+  return client.query(SQL, [handler.location.id])
     .then(result => {
       if ( result.rowCount > 0 ) {
         console.log('Got Meetup data from SQL');
@@ -466,7 +466,7 @@ Trail.fetch = function(location) {
 
 Trail.lookup = function(handler) {
   const SQL = `SELECT * FROM trails WHERE location_id=$1;`;
-  client.query(SQL, [handler.location.id])
+  return client.query(SQL, [handler.location.id])
     .then(result => {
       if ( result.rowCount > 0 ) {
         console.log('Got Trail data from SQL');
