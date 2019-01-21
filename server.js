@@ -34,7 +34,7 @@ app.listen(PORT, () => console.log(`Listening on ${PORT}`));
 const timeouts = {
   weather: 1000 * 15,
   food: 1000 * 60 * 60 * 24,
-  movie: 1000 * 60 * 60 * 24 * 7,
+  movie: 1000 * 60 * 60 * 24 * 7 * 4 * 12,
   meetup: 1000 * 60 * 60 * 12,
   trail: 1000 * 60 * 60 * 6
 }
