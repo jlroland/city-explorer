@@ -1,7 +1,6 @@
 # City Explorer
 
-**Author**: Milo & Jessica
-**Version**: 1.0.1 (increment the patch/fix version number if you make more commits past your first submission)
+**Contributors**: Milo Anderson, Jasmin Arensdorf, Jessica Roland
 
 ## Overview
 This is a backend server app that retreives information about a city. It returns map data, weather forecasts, nearby restaurants, meetups, trails, and movies set in the given city.
